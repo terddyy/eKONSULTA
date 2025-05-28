@@ -18,6 +18,7 @@ html, body {
   margin: 0;
   padding: 0;
   -webkit-text-size-adjust: 100%;
+  height: 100%;
 }
 
 body {
@@ -26,6 +27,8 @@ body {
   color: #333;
   -webkit-tap-highlight-color: transparent;
   font-size: 16px;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Ensure all content stays within viewport */
@@ -38,6 +41,32 @@ body {
 img, svg {
   max-width: 100%;
   height: auto;
+}
+
+/* Mobile-first approach */
+@layer base {
+  h1 {
+    @apply text-2xl sm:text-3xl md:text-4xl font-bold;
+  }
+  h2 {
+    @apply text-xl sm:text-2xl md:text-3xl font-semibold;
+  }
+  h3 {
+    @apply text-lg sm:text-xl font-semibold;
+  }
+  p {
+    @apply text-sm sm:text-base;
+  }
+  
+  /* Make buttons and interactive elements more touch-friendly */
+  button, a, input[type="submit"] {
+    @apply min-h-[44px] sm:min-h-0;
+  }
+  
+  /* Improved focus styles for accessibility */
+  :focus-visible {
+    @apply outline-emerald-500 outline-2 outline-offset-2;
+  }
 }
 
 /* Extra responsive utilities */
@@ -62,6 +91,30 @@ img, svg {
     min-height: 44px;
     min-width: 44px;
   }
+  
+  /* Mobile-first flex layouts */
+  .flex-mobile-col {
+    @apply flex flex-col sm:flex-row;
+  }
+  
+  .flex-mobile-wrap {
+    @apply flex flex-wrap;
+  }
+  
+  /* Responsive paddings */
+  .p-responsive {
+    @apply p-2 sm:p-4 md:p-6 lg:p-8;
+  }
+  
+  /* Responsive gaps */
+  .gap-responsive {
+    @apply gap-2 sm:gap-4 md:gap-6;
+  }
+  
+  /* Responsive cards */
+  .card-responsive {
+    @apply rounded-lg sm:rounded-xl p-4 sm:p-6 shadow-md sm:shadow-lg;
+  }
 }
 
 /* Fix iOS viewport height issues */
@@ -69,12 +122,29 @@ img, svg {
   html, body {
     height: -webkit-fill-available;
   }
+  
+  #__next, main {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
 }
 
 /* Extra small devices */
 @media screen and (max-width: 375px) {
   html {
     font-size: 14px;
+  }
+  
+  .text-xxs {
+    font-size: 0.65rem;
+  }
+}
+
+/* Small mobile devices */
+@media screen and (min-width: 376px) and (max-width: 475px) {
+  html {
+    font-size: 15px;
   }
 }
 

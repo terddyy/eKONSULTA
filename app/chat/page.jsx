@@ -27,15 +27,24 @@ export default function MedicalChatbot() {
       const height = window.innerHeight;
       setViewportHeight(height);
       
-      // Set specific height for Realme 9 Pro (1080x2400) and similar devices
+      // Set specific height for various device aspect ratios
       if (width === 1080 && height <= 2400 && height >= 2000) {
+        // Realme 9 Pro and similar devices
         setDeviceSpecificHeight('55vh');
       } else if (height > width * 2) { 
         // For other tall devices (aspect ratio > 2:1)
         setDeviceSpecificHeight('50vh');
       } else if (width < 640) {
-        setDeviceSpecificHeight('45vh');
+        // Small mobile devices
+        setDeviceSpecificHeight('42vh');
+      } else if (width < 768) {
+        // Medium mobile devices
+        setDeviceSpecificHeight('48vh');
+      } else if (width < 1024) {
+        // Tablets
+        setDeviceSpecificHeight('55vh');
       } else {
+        // Desktop
         setDeviceSpecificHeight('60vh');
       }
     }
@@ -55,7 +64,8 @@ export default function MedicalChatbot() {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       const scrollHeight = textareaRef.current.scrollHeight;
-      const newHeight = Math.min(scrollHeight, 200);
+      const maxHeight = window.innerWidth < 640 ? 100 : 200;
+      const newHeight = Math.min(scrollHeight, maxHeight);
       textareaRef.current.style.height = `${newHeight}px`;
       setTextareaHeight(`${newHeight}px`);
     }
@@ -67,7 +77,7 @@ export default function MedicalChatbot() {
       // On iOS, viewport height changes when keyboard appears
       if (messageContainerRef.current) {
         const viewportHeight = window.innerHeight;
-        const maxHeight = viewportHeight * (window.innerWidth < 640 ? 0.45 : 0.6);
+        const maxHeight = viewportHeight * (window.innerWidth < 640 ? 0.4 : viewportHeight < 700 ? 0.45 : 0.6);
         messageContainerRef.current.style.maxHeight = `${maxHeight}px`;
       }
     }
@@ -119,12 +129,12 @@ export default function MedicalChatbot() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-50 flex flex-col">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-emerald-100 relative z-10">
+      <header className="bg-white shadow-sm border-b border-emerald-100 sticky top-0 z-10 flex-shrink-0">
         <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2 sm:space-x-3">
-            <div className="bg-emerald-100 p-1.5 sm:p-2 rounded-full">
+            <div className="bg-emerald-100 p-1.5 sm:p-2 rounded-full flex items-center justify-center">
               <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
             </div>
             <div>
@@ -139,12 +149,12 @@ export default function MedicalChatbot() {
               onClick={startNewConsultation}
               className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
             >
-              <Plus className="h-4 w-4 mr-2" />
-              New Consultation
+              <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
+              <span className="whitespace-nowrap">New Consultation</span>
             </Button>
             <Link href="/">
               <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
-                <Home className="h-4 w-4 mr-2" />
+                <Home className="h-4 w-4 mr-2 flex-shrink-0" />
                 Home
               </Button>
             </Link>
@@ -154,7 +164,7 @@ export default function MedicalChatbot() {
               variant="ghost"
               size="sm"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-gray-600 p-1"
+              className="text-gray-600 p-1 touch-target"
               aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             >
               {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
@@ -175,12 +185,12 @@ export default function MedicalChatbot() {
                 }}
                 className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 justify-start"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
                 New Consultation
               </Button>
               <Link href="/" className="w-full block" onClick={() => setMobileMenuOpen(false)}>
                 <Button variant="ghost" size="sm" className="w-full text-gray-600 hover:text-gray-900 justify-start">
-                  <Home className="h-4 w-4 mr-2" />
+                  <Home className="h-4 w-4 mr-2 flex-shrink-0" />
                   Home
                 </Button>
               </Link>
@@ -190,9 +200,9 @@ export default function MedicalChatbot() {
       </header>
 
       {/* Chat Container */}
-      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-6 overflow-x-hidden">
-        <Card className="bg-white shadow-md sm:shadow-lg border-0 rounded-lg sm:rounded-xl overflow-hidden">
-          {/* Welcome Message - now hidden since we have initial greeting */}
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-6 overflow-x-hidden flex-grow flex flex-col w-full">
+        <Card className="bg-white shadow-md sm:shadow-lg border-0 rounded-lg sm:rounded-xl overflow-hidden flex flex-col flex-grow">
+          {/* Welcome Message - shown when no messages */}
           {messages.length === 0 && (
             <div className="p-3 sm:p-5 md:p-8 text-center border-b border-gray-100">
               <div className="bg-emerald-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
@@ -210,11 +220,11 @@ export default function MedicalChatbot() {
           <div 
             ref={messageContainerRef}
             style={{
-              height: deviceSpecificHeight,
+              height: messages.length === 0 ? 'auto' : deviceSpecificHeight,
               overflowY: 'auto',
               scrollBehavior: 'smooth'
             }}
-            className="p-2 xs:p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6"
+            className="p-2 xs:p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 flex-grow"
           >
             {messages.map((message) => (
               <div
@@ -230,7 +240,7 @@ export default function MedicalChatbot() {
                       : "bg-emerald-100 border-2 border-emerald-200"
                   }`}
                 >
-                  <AvatarFallback>
+                  <AvatarFallback className="flex items-center justify-center">
                     {message.role === "user" ? (
                       <User className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     ) : (
@@ -260,7 +270,7 @@ export default function MedicalChatbot() {
             {isTyping && (
               <div className="flex items-start space-x-2 sm:space-x-3">
                 <Avatar className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 bg-emerald-100 border-2 border-emerald-200 flex-shrink-0">
-                  <AvatarFallback>
+                  <AvatarFallback className="flex items-center justify-center">
                     <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
                   </AvatarFallback>
                 </Avatar>
@@ -285,7 +295,7 @@ export default function MedicalChatbot() {
           </div>
 
           {/* Input Area */}
-          <div className="border-t border-gray-100 p-2 xs:p-3 sm:p-4 md:p-6">
+          <div className="border-t border-gray-100 p-2 xs:p-3 sm:p-4 md:p-6 flex-shrink-0">
             <form onSubmit={onSubmit} className="flex space-x-2 sm:space-x-3">
               <div className="flex-1 relative">
                 <textarea
@@ -295,7 +305,7 @@ export default function MedicalChatbot() {
                   onKeyDown={handleKeyDown}
                   placeholder="Describe your symptoms in detail..."
                   style={{ height: textareaHeight }}
-                  className="w-full pr-8 sm:pr-10 py-1.5 sm:py-2 md:py-3 px-2.5 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[32px] sm:min-h-[40px] md:min-h-[60px]"
+                  className="w-full pr-8 sm:pr-10 py-1.5 sm:py-2 md:py-3 px-2.5 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[32px] sm:min-h-[40px] md:min-h-[48px]"
                   rows={1}
                   disabled={isTyping}
                   aria-label="Message input"
@@ -304,10 +314,10 @@ export default function MedicalChatbot() {
               <Button
                 type="submit"
                 disabled={isTyping || !input.trim()}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0 flex items-center justify-center"
                 aria-label="Send message"
               >
-                <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
                 <span className="hidden sm:inline ml-1">Send</span>
               </Button>
             </form>
