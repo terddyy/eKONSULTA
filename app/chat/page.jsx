@@ -317,7 +317,7 @@ export default function MedicalChatbot() {
                 className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0 flex items-center justify-center"
                 aria-label="Send message"
               >
-                <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4 flex-shrink-0" />
+                <Send className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-white" />
                 <span className="hidden sm:inline ml-1">Send</span>
               </Button>
             </form>
