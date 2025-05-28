@@ -112,10 +112,10 @@ export default function HomePage() {
                 <Link href="/chat" className="w-full xs:w-auto">
                   <Button 
                     size="lg" 
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 sm:px-6 md:px-8 py-2.5 sm:py-3 md:py-4 text-sm sm:text-base md:text-lg shadow-md w-full xs:w-auto"
+                    className="bg-white hover:bg-gray-50 text-emerald-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold shadow-md sm:shadow-lg hover:shadow-xl transition-all transform hover:scale-105 rounded-lg sm:rounded-xl border-2 sm:border-4 border-emerald-500 w-full xs:w-auto"
                   >
-                    <MessageCircle className="mr-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                    <span className="whitespace-nowrap">Start Free Consultation</span>
+                    <span className="text-emerald-700">Start Free Consultation</span>
+                    <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-emerald-700" />
                   </Button>
                 </Link>
                 <Button
@@ -320,10 +320,10 @@ export default function HomePage() {
           <Link href="/chat" className="inline-block w-full xs:w-auto">
             <Button 
               size="lg" 
-              className="bg-white hover:bg-gray-50 text-emerald-800 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold shadow-md sm:shadow-lg hover:shadow-xl transition-all transform hover:scale-105 rounded-lg sm:rounded-xl border-2 sm:border-4 border-emerald-500 w-full xs:w-auto"
+              className="bg-white hover:bg-gray-50 text-emerald-700 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg font-bold shadow-md sm:shadow-lg hover:shadow-xl transition-all transform hover:scale-105 rounded-lg sm:rounded-xl border-2 sm:border-4 border-emerald-500 w-full xs:w-auto"
             >
-              Start Free Consultation
-              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+              <span className="text-emerald-700">Start Free Consultation</span>
+              <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-emerald-700" />
             </Button>
           </Link>
         </div>
