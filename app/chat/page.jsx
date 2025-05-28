@@ -17,6 +17,33 @@ export default function MedicalChatbot() {
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
   const messageContainerRef = useRef(null);
+  const [viewportHeight, setViewportHeight] = useState(0);
+  const [deviceSpecificHeight, setDeviceSpecificHeight] = useState('60vh');
+
+  // Detect device dimensions and set appropriate heights
+  useEffect(() => {
+    function handleResize() {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      setViewportHeight(height);
+      
+      // Set specific height for Realme 9 Pro (1080x2400) and similar devices
+      if (width === 1080 && height <= 2400 && height >= 2000) {
+        setDeviceSpecificHeight('55vh');
+      } else if (height > width * 2) { 
+        // For other tall devices (aspect ratio > 2:1)
+        setDeviceSpecificHeight('50vh');
+      } else if (width < 640) {
+        setDeviceSpecificHeight('45vh');
+      } else {
+        setDeviceSpecificHeight('60vh');
+      }
+    }
+    
+    handleResize(); // Initial call
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   // Auto-scroll to bottom of messages
   useEffect(() => {
@@ -163,7 +190,7 @@ export default function MedicalChatbot() {
       </header>
 
       {/* Chat Container */}
-      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-6">
+      <div className="max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-6 overflow-x-hidden">
         <Card className="bg-white shadow-md sm:shadow-lg border-0 rounded-lg sm:rounded-xl overflow-hidden">
           {/* Welcome Message - now hidden since we have initial greeting */}
           {messages.length === 0 && (
@@ -182,8 +209,12 @@ export default function MedicalChatbot() {
           {/* Messages */}
           <div 
             ref={messageContainerRef}
-            className="h-[45vh] xs:h-[50vh] sm:h-[60vh] md:h-[65vh] overflow-y-auto p-2 xs:p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 scroll-smooth"
-            style={{scrollBehavior: 'smooth'}}
+            style={{
+              height: deviceSpecificHeight,
+              overflowY: 'auto',
+              scrollBehavior: 'smooth'
+            }}
+            className="p-2 xs:p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6"
           >
             {messages.map((message) => (
               <div
@@ -273,7 +304,7 @@ export default function MedicalChatbot() {
               <Button
                 type="submit"
                 disabled={isTyping || !input.trim()}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0"
                 aria-label="Send message"
               >
                 <Send className="h-3.5 w-3.5 sm:h-4 sm:w-4" />

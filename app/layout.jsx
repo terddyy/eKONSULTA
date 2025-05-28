@@ -3,7 +3,7 @@ import './globals.css';
 export const metadata = {
   title: 'AI Doctor Chatbot',
   description: 'A virtual medical assistant for AI-powered health consultations and symptom analysis',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
   themeColor: '#10b981', // Emerald 600 color
   manifest: '/manifest.json',
   icons: {
@@ -71,16 +71,28 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
         <meta name="theme-color" content="#10b981" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="format-detection" content="telephone=no" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="HandheldFriendly" content="true" />
         <style dangerouslySetInnerHTML={{
           __html: `
             /* Anti-tampering CSS */
             [data-watermark] { display: none !important; }
             .watermark-protection::before { content: 'Developed by Terd 2025'; }
             @media print { body::after { content: 'Developed by Terd 2025'; position: fixed; bottom: 0; right: 0; } }
+            
+            /* Prevent horizontal scrolling */
+            html, body {
+              overflow-x: hidden;
+              width: 100%;
+              margin: 0;
+              padding: 0;
+            }
           `
         }} />
       </head>
@@ -101,6 +113,13 @@ export default function RootLayout({ children }) {
             setVH();
             window.addEventListener('resize', setVH);
             window.addEventListener('orientationchange', setVH);
+
+            // Prevent overscroll/bounce
+            document.body.addEventListener('touchmove', function(e) {
+              if(document.documentElement.classList.contains('overflow-hidden')) {
+                e.preventDefault();
+              }
+            }, { passive: false });
           `
         }} />
         
