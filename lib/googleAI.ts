@@ -87,8 +87,18 @@ export async function getAIDoctorResponse(messages: ChatMessage[]): Promise<stri
     
     console.log('Sending message to Google AI...');
     
-    // Get response from Google AI
-    const result = await model.generateContent(fullPrompt);
+    // Create generation config with lower temperature (0.2 for more deterministic responses)
+    const generationConfig = {
+      temperature: 0.2,
+      topP: 0.8,
+      topK: 40,
+    };
+    
+    // Get response from Google AI with temperature control
+    const result = await model.generateContent({
+      contents: [{ role: 'user', parts: [{ text: fullPrompt }] }],
+      generationConfig,
+    });
     console.log('Received response from Google AI');
     
     if (result && result.response) {
