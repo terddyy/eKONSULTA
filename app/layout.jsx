@@ -2,7 +2,30 @@ import './globals.css';
 
 export const metadata = {
   title: 'AI Doctor Chatbot',
-  description: 'A virtual medical assistant',
+  description: 'A virtual medical assistant for AI-powered health consultations and symptom analysis',
+  viewport: 'width=device-width, initial-scale=1, maximum-scale=1',
+  themeColor: '#10b981', // Emerald 600 color
+  manifest: '/manifest.json',
+  icons: {
+    icon: '/favicon.ico',
+    apple: '/apple-icon.png'
+  },
+  openGraph: {
+    title: 'E-Konsulta - AI Medical Assistant',
+    description: 'Get instant medical guidance, symptom analysis, and health advice from our advanced AI assistant.',
+    url: 'https://ekonsulta.ai',
+    siteName: 'E-Konsulta',
+    images: [
+      {
+        url: '/og-image.jpg',
+        width: 1200,
+        height: 630,
+        alt: 'E-Konsulta AI Medical Assistant'
+      }
+    ],
+    locale: 'en_US',
+    type: 'website',
+  },
 };
 
 // Watermark component with multiple security layers
@@ -46,8 +69,12 @@ const SecureWatermark = () => {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" className="scroll-smooth">
       <head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="theme-color" content="#10b981" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <style dangerouslySetInnerHTML={{
           __html: `
             /* Anti-tampering CSS */
@@ -60,6 +87,23 @@ export default function RootLayout({ children }) {
       <body className="bg-gray-50">
         {children}
         <SecureWatermark />
+        
+        {/* Script for viewport height adjustment on mobile */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            // Fix for mobile viewport height issues (especially iOS)
+            function setVH() {
+              let vh = window.innerHeight * 0.01;
+              document.documentElement.style.setProperty('--vh', vh + 'px');
+            }
+            
+            // Set initially and on resize
+            setVH();
+            window.addEventListener('resize', setVH);
+            window.addEventListener('orientationchange', setVH);
+          `
+        }} />
+        
         {/* Inline script for additional protection */}
         <script dangerouslySetInnerHTML={{
           __html: `

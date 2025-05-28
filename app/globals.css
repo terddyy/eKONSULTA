@@ -14,6 +14,47 @@ body {
   background-color: var(--background-color);
   font-family: 'Montserrat', sans-serif;
   color: #333;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+  font-size: 16px;
+}
+
+/* Extra responsive utilities */
+@layer components {
+  /* Responsive font sizes */
+  .text-responsive {
+    font-size: clamp(0.9rem, 1vw + 0.5rem, 1.2rem);
+  }
+  
+  .text-responsive-lg {
+    font-size: clamp(1.2rem, 1.5vw + 0.8rem, 2rem);
+  }
+
+  /* Used for height adjustments on mobile */
+  .h-screen-safe {
+    height: 100vh; /* fallback */
+    height: calc(var(--vh, 1vh) * 100);
+  }
+  
+  /* Improved mobile touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* Fix iOS viewport height issues */
+@media screen and (max-width: 768px) {
+  html, body {
+    height: -webkit-fill-available;
+  }
+}
+
+/* Extra small devices */
+@media screen and (max-width: 375px) {
+  html {
+    font-size: 14px;
+  }
 }
 
 /* Watermark Protection Styles */
@@ -37,13 +78,45 @@ body {
 /* Print protection */
 @media print {
   body::after {
-    content: 'Developed by Terd 2025' !important;
-    position: fixed !important;
-    bottom: 0 !important;
-    right: 0 !important;
-    font-size: 12px !important;
-    color: rgba(0, 0, 0, 0.5) !important;
-    z-index: 9999999 !important;
+    content: 'Developed by Terd 2025';
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    font-size: 14px;
+    color: #333;
+    opacity: 0.7;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Focus styles for accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
+}
+
+/* Custom scrollbar for desktop */
+@media (min-width: 768px) {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: #10b981;
+    border-radius: 10px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: #0e9f6e;
   }
 }
 

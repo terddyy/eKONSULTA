@@ -5,6 +5,14 @@ module.exports = {
     './components/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
+    screens: {
+      'xs': '475px',
+      'sm': '640px',
+      'md': '768px',
+      'lg': '1024px',
+      'xl': '1280px',
+      '2xl': '1536px',
+    },
     extend: {
       colors: {
         background: '#EBEBDF',
@@ -52,6 +60,18 @@ module.exports = {
       },
       animation: {
         bounce: 'bounce 1s infinite',
+      },
+      fontSize: {
+        'xxs': ['0.65rem', { lineHeight: '0.9rem' }],
+      },
+      maxWidth: {
+        'xxs': '16rem',
+      },
+      minWidth: {
+        'touch': '44px',
+      },
+      minHeight: {
+        'touch': '44px',
       },
     },
   },
