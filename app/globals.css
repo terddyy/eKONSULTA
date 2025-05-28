@@ -1,0 +1,64 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background-color: #EBEBDF;
+  --header-color: #191265;
+  --accent-color: #6f42c1;
+}
+
+body {
+  background-color: var(--background-color);
+  font-family: 'Montserrat', sans-serif;
+  color: #333;
+}
+
+/* Watermark Protection Styles */
+@layer utilities {
+  /* Base watermark styles that can't be easily overridden */
+  [data-watermark] {
+    display: none !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    z-index: 999999 !important;
+  }
+
+  /* Prevent watermark from being hidden */
+  [data-watermark]:not(:root) {
+    position: fixed !important;
+    bottom: 0 !important;
+    right: 0 !important;
+  }
+}
+
+/* Print protection */
+@media print {
+  body::after {
+    content: 'Developed by Terd 2025' !important;
+    position: fixed !important;
+    bottom: 0 !important;
+    right: 0 !important;
+    font-size: 12px !important;
+    color: rgba(0, 0, 0, 0.5) !important;
+    z-index: 9999999 !important;
+  }
+}
+
+/* Additional security layers */
+.watermark-protection {
+  pointer-events: none !important;
+  user-select: none !important;
+}
+
+/* Force watermark visibility */
+.watermark-protection::before,
+.watermark-protection::after {
+  content: 'Developed by Terd 2025' !important;
+  position: fixed !important;
+  z-index: 999999 !important;
+  pointer-events: none !important;
+  user-select: none !important;
+} 
