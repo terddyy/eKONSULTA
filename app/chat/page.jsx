@@ -12,6 +12,7 @@ import { Stethoscope, Plus, Send, User, Bot, Home, Menu, X } from '@/components/
 export default function MedicalChatbot() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat();
   const [isTyping, setIsTyping] = useState(false);
+  const [useStreaming, setUseStreaming] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState('auto');
   const textareaRef = useRef(null);
@@ -27,39 +28,32 @@ export default function MedicalChatbot() {
       const height = window.innerHeight;
       setViewportHeight(height);
       
-      // Set specific height for various device aspect ratios
       if (width === 1080 && height <= 2400 && height >= 2000) {
-        // Realme 9 Pro and similar devices
         setDeviceSpecificHeight('55vh');
-      } else if (height > width * 2) { 
-        // For other tall devices (aspect ratio > 2:1)
+      } else if (height > width * 2) {
         setDeviceSpecificHeight('50vh');
       } else if (width < 640) {
-        // Small mobile devices
         setDeviceSpecificHeight('42vh');
       } else if (width < 768) {
-        // Medium mobile devices
         setDeviceSpecificHeight('48vh');
       } else if (width < 1024) {
-        // Tablets
         setDeviceSpecificHeight('55vh');
       } else {
-        // Desktop
         setDeviceSpecificHeight('60vh');
       }
     }
     
-    handleResize(); // Initial call
+    handleResize();
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  // Auto-scroll to bottom of messages
+  // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Adjust textarea height based on content
+  // Adjust textarea height
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
@@ -71,44 +65,72 @@ export default function MedicalChatbot() {
     }
   }, [input]);
 
-  // Handle viewport resize due to virtual keyboard on mobile
-  useEffect(() => {
-    function handleResize() {
-      // On iOS, viewport height changes when keyboard appears
-      if (messageContainerRef.current) {
-        const viewportHeight = window.innerHeight;
-        const maxHeight = viewportHeight * (window.innerWidth < 640 ? 0.4 : viewportHeight < 700 ? 0.45 : 0.6);
-        messageContainerRef.current.style.maxHeight = `${maxHeight}px`;
-      }
-    }
-
-    window.addEventListener('resize', handleResize);
-    handleResize(); // Initial setup
-    
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const onSubmit = (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() || isTyping) return;
-    
-    setIsTyping(true);
-    handleSubmit(e).finally(() => {
+
+    if (!useStreaming) {
+      setIsTyping(true);
+      await handleSubmit(e);
       setIsTyping(false);
-      // Focus back to textarea after sending message on mobile
-      if (window.innerWidth < 768) {
-        setTimeout(() => textareaRef.current?.focus(), 100);
-      }
-    });
-  };
-  
-  const handleKeyDown = (e) => {
-    // If Shift+Enter is pressed, insert a new line
-    if (e.key === 'Enter' && e.shiftKey) {
-      return; // Default behavior - new line
+      if (window.innerWidth < 768) setTimeout(() => textareaRef.current?.focus(), 100);
+      return;
     }
-    
-    // If only Enter is pressed, submit the form
+
+    // Streaming path
+    setIsTyping(true);
+
+    // Add user message immediately
+    const userMessage = {
+      id: Date.now().toString(36),
+      role: 'user',
+      content: input.trim(),
+    };
+    setMessages((prev) => [...prev, userMessage]);
+
+    // Create an empty assistant message to append to
+    const assistantId = `${Date.now().toString(36)}-ai`;
+    setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
+
+    // Clear input
+    const currentInput = input.trim();
+    (document.activeElement)?.blur?.();
+
+    try {
+      const url = `${window.location.origin}/api/consult/stream`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: [...messages, userMessage] }),
+        cache: 'no-store'
+      });
+      if (!res.ok || !res.body) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data?.error || `Server error: ${res.status}`);
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: streamDone } = await reader.read();
+        done = streamDone;
+        if (value) {
+          const chunk = decoder.decode(value);
+          setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: m.content + chunk } : m));
+        }
+      }
+    } catch (err) {
+      const message = err?.message || 'Streaming failed';
+      setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: message } : m));
+    } finally {
+      setIsTyping(false);
+    }
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && e.shiftKey) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       onSubmit(e);
@@ -116,15 +138,8 @@ export default function MedicalChatbot() {
   };
 
   const startNewConsultation = () => {
-    // Clear messages first
     setMessages([]);
-    
-    // The initial greeting will be added automatically via useEffect in useChat.js
-    if (mobileMenuOpen) {
-      setMobileMenuOpen(false);
-    }
-    
-    // Focus on textarea
+    if (mobileMenuOpen) setMobileMenuOpen(false);
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
 
@@ -143,6 +158,9 @@ export default function MedicalChatbot() {
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-2">
+            <Button variant="outline" size="sm" onClick={() => setUseStreaming(!useStreaming)} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
+              {useStreaming ? 'Streaming: On' : 'Streaming: Off'}
+            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -171,51 +189,11 @@ export default function MedicalChatbot() {
             </Button>
           </div>
         </div>
-
-        {/* Mobile menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-white shadow-lg absolute w-full z-20">
-            <div className="px-3 py-2 space-y-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  startNewConsultation();
-                  setMobileMenuOpen(false);
-                }}
-                className="w-full border-emerald-200 text-emerald-700 hover:bg-emerald-50 justify-start"
-              >
-                <Plus className="h-4 w-4 mr-2 flex-shrink-0" />
-                New Consultation
-              </Button>
-              <Link href="/" className="w-full block" onClick={() => setMobileMenuOpen(false)}>
-                <Button variant="ghost" size="sm" className="w-full text-gray-600 hover:text-gray-900 justify-start">
-                  <Home className="h-4 w-4 mr-2 flex-shrink-0" />
-                  Home
-                </Button>
-              </Link>
-            </div>
-          </div>
-        )}
       </header>
 
       {/* Chat Container */}
       <div className="max-w-4xl mx-auto px-2 sm:px-4 py-2 sm:py-4 md:py-6 overflow-x-hidden flex-grow flex flex-col w-full">
         <Card className="bg-white shadow-md sm:shadow-lg border-0 rounded-lg sm:rounded-xl overflow-hidden flex flex-col flex-grow">
-          {/* Welcome Message - shown when no messages */}
-          {messages.length === 0 && (
-            <div className="p-3 sm:p-5 md:p-8 text-center border-b border-gray-100">
-              <div className="bg-emerald-100 w-12 h-12 sm:w-16 sm:h-16 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                <Stethoscope className="h-6 w-6 sm:h-8 sm:w-8 text-emerald-600" />
-              </div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-semibold text-gray-900 mb-2">Welcome to AI Medical Assistant</h2>
-              <p className="text-xs sm:text-sm md:text-base text-gray-600 max-w-md mx-auto">
-                Describe your symptoms and I'll help provide medical guidance. Please remember that this is not a
-                substitute for professional medical care.
-              </p>
-            </div>
-          )}
-
           {/* Messages */}
           <div 
             ref={messageContainerRef}
@@ -227,70 +205,24 @@ export default function MedicalChatbot() {
             className="p-2 xs:p-3 sm:p-4 md:p-6 space-y-3 sm:space-y-4 md:space-y-6 flex-grow"
           >
             {messages.map((message) => (
-              <div
-                key={message.id}
-                className={`flex items-start space-x-2 sm:space-x-3 ${
-                  message.role === "user" ? "flex-row-reverse space-x-reverse" : ""
-                }`}
-              >
-                <Avatar
-                  className={`h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 flex-shrink-0 ${
-                    message.role === "user"
-                      ? "bg-blue-100 border-2 border-blue-200"
-                      : "bg-emerald-100 border-2 border-emerald-200"
-                  }`}
-                >
+              <div key={message.id} className={`flex items-start space-x-2 sm:space-x-3 ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
+                <Avatar className={`h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 flex-shrink-0 ${message.role === 'user' ? 'bg-blue-100 border-2 border-blue-200' : 'bg-emerald-100 border-2 border-emerald-200'}`}>
                   <AvatarFallback className="flex items-center justify-center">
-                    {message.role === "user" ? (
+                    {message.role === 'user' ? (
                       <User className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     ) : (
                       <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
                     )}
                   </AvatarFallback>
                 </Avatar>
-
-                <div className={`flex-1 max-w-[80%] xs:max-w-[85%] sm:max-w-[90%] ${message.role === "user" ? "text-right" : "text-left"}`}>
-                  <div
-                    className={`inline-block p-2 xs:p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl md:rounded-2xl ${
-                      message.role === "user"
-                        ? "bg-blue-600 text-white rounded-br-none"
-                        : "bg-gray-50 text-gray-900 rounded-bl-none border border-gray-200"
-                    }`}
-                  >
+                <div className={`flex-1 max-w-[80%] xs:max-w-[85%] sm:max-w-[90%] ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
+                  <div className={`inline-block p-2 xs:p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl md:rounded-2xl ${message.role === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-50 text-gray-900 rounded-bl-none border border-gray-200'}`}>
                     <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</div>
                   </div>
-                  <div className={`text-[9px] xs:text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 ${message.role === "user" ? "text-right" : "text-left"}`}>
-                    {message.role === "user" ? "You" : "AI Medical Assistant"}
-                  </div>
+                  <div className={`text-[9px] xs:text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>{message.role === 'user' ? 'You' : 'AI Medical Assistant'}</div>
                 </div>
               </div>
             ))}
-
-            {/* Typing Indicator */}
-            {isTyping && (
-              <div className="flex items-start space-x-2 sm:space-x-3">
-                <Avatar className="h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 bg-emerald-100 border-2 border-emerald-200 flex-shrink-0">
-                  <AvatarFallback className="flex items-center justify-center">
-                    <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
-                  </AvatarFallback>
-                </Avatar>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg sm:rounded-xl rounded-bl-none p-2 xs:p-2.5 sm:p-3 md:p-4">
-                  <div className="flex space-x-1">
-                    <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full animate-bounce"></div>
-                    <div
-                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.1s" }}
-                    ></div>
-                    <div
-                      className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-emerald-500 rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    ></div>
-                  </div>
-                </div>
-              </div>
-            )}
-            
-            {/* Invisible element for auto-scrolling */}
             <div ref={messagesEndRef} />
           </div>
 
@@ -311,20 +243,56 @@ export default function MedicalChatbot() {
                   aria-label="Message input"
                 />
               </div>
-              <Button
-                type="submit"
-                disabled={isTyping || !input.trim()}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0 flex items-center justify-center"
-                aria-label="Send message"
-              >
+              <Button type="submit" disabled={isTyping || !input.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0 flex items-center justify-center" aria-label="Send message">
                 <Send className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-white" />
                 <span className="hidden sm:inline ml-1">Send</span>
               </Button>
             </form>
-            <p className="text-[8px] xs:text-[10px] sm:text-xs text-gray-500 mt-1.5 sm:mt-2 md:mt-3 text-center">
-              Press Enter to send, Shift+Enter for a new line. This AI assistant provides general medical information. 
-              Always consult healthcare professionals for serious symptoms.
-            </p>
+            <div className="text-[10px] sm:text-xs text-gray-500 mt-2 text-center">Streaming: {useStreaming ? 'On' : 'Off'}</div>
+
+            {/* Recommendations */}
+            <div className="mt-3 sm:mt-4">
+              <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Quick recommendations</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+                {[
+                  { t: 'I have a headache' },
+                  { t: 'I have stomach pain' },
+                  { t: 'I have a fever' },
+                  { t: 'I have a sore throat' },
+                  { t: 'I have back pain' },
+                  { t: "I'm having chest pain" },
+                  { t: 'I feel dizzy' },
+                  { t: "I can't breathe properly" },
+                  { t: "I'm having severe abdominal pain" },
+                  { t: 'I feel anxious' },
+                  { t: 'I have trouble sleeping' },
+                  { t: 'I need medication advice' },
+                  { t: 'I want to check my symptoms' },
+                  { t: 'I have a rash' },
+                  { t: 'I injured myself' },
+                  { t: "I'm feeling nauseous" },
+                  { t: 'I have eye problems' },
+                ].map((item, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    className="text-left bg-white border border-emerald-100 hover:border-emerald-200 hover:shadow-sm transition-all rounded-md sm:rounded-lg px-2.5 py-2 sm:px-3 sm:py-2.5 text-[11px] sm:text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
+                    aria-label={`Start: ${item.t}`}
+                    onClick={() => {
+                      // Simulate user typing the suggestion and submit
+                      const fakeEvent = { preventDefault: () => {} };
+                      textareaRef.current && (textareaRef.current.value = item.t);
+                      // set state and call submit (handles streaming if enabled)
+                      const inputEvent = { target: { value: item.t } };
+                      handleInputChange(inputEvent);
+                      onSubmit(fakeEvent);
+                    }}
+                  >
+                    {item.t}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </Card>
       </div>
