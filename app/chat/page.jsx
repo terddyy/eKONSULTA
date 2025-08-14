@@ -12,7 +12,6 @@ import { Stethoscope, Plus, Send, User, Bot, Home, Menu, X } from '@/components/
 export default function MedicalChatbot() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat();
   const [isTyping, setIsTyping] = useState(false);
-  const [useStreaming, setUseStreaming] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [textareaHeight, setTextareaHeight] = useState('auto');
   const textareaRef = useRef(null);
@@ -69,15 +68,7 @@ export default function MedicalChatbot() {
     e.preventDefault();
     if (!input.trim() || isTyping) return;
 
-    if (!useStreaming) {
-      setIsTyping(true);
-      await handleSubmit(e);
-      setIsTyping(false);
-      if (window.innerWidth < 768) setTimeout(() => textareaRef.current?.focus(), 100);
-      return;
-    }
-
-    // Streaming path
+    // Always stream
     setIsTyping(true);
 
     // Add user message immediately
@@ -93,7 +84,6 @@ export default function MedicalChatbot() {
     setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
 
     // Clear input
-    const currentInput = input.trim();
     (document.activeElement)?.blur?.();
 
     try {
@@ -158,9 +148,6 @@ export default function MedicalChatbot() {
             </div>
           </div>
           <div className="hidden md:flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={() => setUseStreaming(!useStreaming)} className="border-emerald-200 text-emerald-700 hover:bg-emerald-50">
-              {useStreaming ? 'Streaming: On' : 'Streaming: Off'}
-            </Button>
             <Button
               variant="outline"
               size="sm"
@@ -237,18 +224,22 @@ export default function MedicalChatbot() {
                   onKeyDown={handleKeyDown}
                   placeholder="Describe your symptoms in detail..."
                   style={{ height: textareaHeight }}
-                  className="w-full pr-8 sm:pr-10 py-1.5 sm:py-2 md:py-3 px-2.5 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[32px] sm:min-h-[40px] md:min-h-[48px]"
+                  className="w-full pr-10 sm:pr-12 py-1.5 sm:py-2 md:py-3 px-2.5 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[32px] sm:min-h-[40px] md:min-h-[48px]"
                   rows={1}
                   disabled={isTyping}
                   aria-label="Message input"
                 />
+                <Button
+                  type="submit"
+                  disabled={isTyping || !input.trim()}
+                  className="absolute right-1.5 bottom-1.5 sm:right-2 sm:bottom-2 h-7 w-7 sm:h-8 sm:w-8 md:static md:h-10 md:w-auto md:p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md sm:rounded-lg transition-colors flex items-center justify-center"
+                  aria-label="Send message"
+                >
+                  <Send className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-white" />
+                  <span className="hidden md:inline ml-1">Send</span>
+                </Button>
               </div>
-              <Button type="submit" disabled={isTyping || !input.trim()} className="bg-emerald-600 hover:bg-emerald-700 text-white p-2 sm:px-4 sm:py-2 md:px-6 md:py-3 rounded-md sm:rounded-lg transition-colors self-end h-8 sm:h-10 w-8 sm:w-auto flex-shrink-0 flex items-center justify-center" aria-label="Send message">
-                <Send className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-white" />
-                <span className="hidden sm:inline ml-1">Send</span>
-              </Button>
             </form>
-            <div className="text-[10px] sm:text-xs text-gray-500 mt-2 text-center">Streaming: {useStreaming ? 'On' : 'Off'}</div>
 
             {/* Recommendations */}
             <div className="mt-3 sm:mt-4">
@@ -279,10 +270,8 @@ export default function MedicalChatbot() {
                     className="text-left bg-white border border-emerald-100 hover:border-emerald-200 hover:shadow-sm transition-all rounded-md sm:rounded-lg px-2.5 py-2 sm:px-3 sm:py-2.5 text-[11px] sm:text-xs text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-200"
                     aria-label={`Start: ${item.t}`}
                     onClick={() => {
-                      // Simulate user typing the suggestion and submit
                       const fakeEvent = { preventDefault: () => {} };
                       textareaRef.current && (textareaRef.current.value = item.t);
-                      // set state and call submit (handles streaming if enabled)
                       const inputEvent = { target: { value: item.t } };
                       handleInputChange(inputEvent);
                       onSubmit(fakeEvent);
