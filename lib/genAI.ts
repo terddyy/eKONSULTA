@@ -26,15 +26,17 @@ const systemInstruction = `You are an AI doctor. Your job is to help users ident
  */
 function formatMessages(messages: ChatMessage[]) {
   const formattedMessages = messages.map((msg) => ({
-    role: msg.role,
+    // Map roles to Gemini-expected values: 'user' | 'model'
+    role: msg.role === 'user' ? 'user' : 'model',
     parts: [{ text: msg.content }],
   }));
 
+  // Ensure the first user message includes instructions if desired
   if (formattedMessages.length > 0 && formattedMessages[0].role === 'user') {
     formattedMessages[0].parts[0].text = `${systemInstruction}\n\n${formattedMessages[0].parts[0].text}`;
   }
   
-  return formattedMessages;
+  return formattedMessages as Array<{ role: 'user' | 'model'; parts: Array<{ text: string }>; }>;
 }
 
 /**

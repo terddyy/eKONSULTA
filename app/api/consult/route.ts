@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAIDoctorResponse, ChatMessage } from '@/lib/genAI';
 
+// Ensure dynamic, uncached, Node.js runtime
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 /**
  * API route handler for chat consultations
  * Receives messages from the client and returns AI responses
@@ -16,7 +21,7 @@ export async function POST(request: NextRequest) {
       console.error('Invalid request: messages array is missing or empty');
       return NextResponse.json(
         { error: 'Invalid request: messages array is required' },
-        { status: 400 }
+        { status: 400, headers: { 'Cache-Control': 'no-store' } }
       );
     }
 
@@ -28,7 +33,10 @@ export async function POST(request: NextRequest) {
       const aiResponse = await getAIDoctorResponse(messages);
       
       // Return the AI response
-      return NextResponse.json({ response: aiResponse });
+      return NextResponse.json(
+        { response: aiResponse },
+        { status: 200, headers: { 'Cache-Control': 'no-store' } }
+      );
     } catch (aiError: any) {
       console.error('Error getting AI response:', aiError);
       const message = aiError?.message || 'Unknown AI error';
@@ -37,7 +45,7 @@ export async function POST(request: NextRequest) {
       const details = typeof aiError === 'object' ? JSON.stringify(aiError, Object.getOwnPropertyNames(aiError)) : String(aiError);
       return NextResponse.json(
         { error: message, name, details },
-        { status }
+        { status, headers: { 'Cache-Control': 'no-store' } }
       );
     }
   } catch (error) {
@@ -45,7 +53,7 @@ export async function POST(request: NextRequest) {
     const message = (error as any)?.message || 'Internal server error';
     return NextResponse.json(
       { error: message },
-      { status: 500 }
+      { status: 500, headers: { 'Cache-Control': 'no-store' } }
     );
   }
 } 
