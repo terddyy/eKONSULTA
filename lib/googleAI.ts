@@ -114,11 +114,7 @@ export async function getAIDoctorResponse(messages: ChatMessage[]): Promise<stri
   } catch (error) {
     console.error('Error calling AI API:', error);
     
-    // Use fallback responses when API fails
-    console.log('Using fallback response due to API error');
-    if (messages.length <= 1) {
-      return FALLBACK_RESPONSES.initial.join("\n\n");
-    }
-    return FALLBACK_RESPONSES.followUp.join("\n\n");
+    // Instead of using fallback, return a clear error message for the chat
+    return "api limit, contact owner";
   }
 } 

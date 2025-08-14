@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAIDoctorResponse, ChatMessage } from '@/lib/googleAI';
+import { getAIDoctorResponse, ChatMessage } from '@/lib/genAI';
 
 /**
  * API route handler for chat consultations
@@ -29,17 +29,22 @@ export async function POST(request: NextRequest) {
       
       // Return the AI response
       return NextResponse.json({ response: aiResponse });
-    } catch (aiError) {
+    } catch (aiError: any) {
       console.error('Error getting AI response:', aiError);
+      const message = aiError?.message || 'Unknown AI error';
+      const name = aiError?.name || 'AIError';
+      const status = typeof aiError?.status === 'number' ? aiError.status : 500;
+      const details = typeof aiError === 'object' ? JSON.stringify(aiError, Object.getOwnPropertyNames(aiError)) : String(aiError);
       return NextResponse.json(
-        { error: 'Error getting AI response', details: String(aiError) },
-        { status: 500 }
+        { error: message, name, details },
+        { status }
       );
     }
   } catch (error) {
     console.error('Error in /api/consult route:', error);
+    const message = (error as any)?.message || 'Internal server error';
     return NextResponse.json(
-      { error: 'Internal server error', details: String(error) },
+      { error: message },
       { status: 500 }
     );
   }

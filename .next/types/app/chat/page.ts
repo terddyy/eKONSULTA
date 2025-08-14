@@ -1,4 +1,4 @@
-// File: C:\Users\Geno\Desktop\chatbot\app\chat\page.jsx
+// File: D:\TERD\eKONSULTA\app\chat\page.jsx
 import * as entry from '../../../../app/chat/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 

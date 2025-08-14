@@ -3,8 +3,6 @@ import './globals.css';
 export const metadata = {
   title: 'AI Doctor Chatbot',
   description: 'A virtual medical assistant for AI-powered health consultations and symptom analysis',
-  viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover',
-  themeColor: '#10b981', // Emerald 600 color
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',
@@ -26,6 +24,15 @@ export const metadata = {
     locale: 'en_US',
     type: 'website',
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#10b981',
 };
 
 // Watermark component with multiple security layers
@@ -69,16 +76,14 @@ const SecureWatermark = () => {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className="scroll-smooth">
+    <html lang="en" className="scroll-smooth" suppressHydrationWarning>
       <head>
         <meta charSet="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-        <meta name="theme-color" content="#10b981" />
+        {/* Removed duplicate viewport and theme-color meta tags; handled by viewport export */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="HandheldFriendly" content="true" />
         <style dangerouslySetInnerHTML={{
           __html: `
             /* Anti-tampering CSS */

@@ -1,34 +1,7 @@
 import {
-  DynamicRetrievalConfigMode,
   GoogleGenAI,
 } from '@google/genai';
-import { getGoogleApiKey } from './env';
-
-// Import mime type handling
-let mime: any;
-try {
-  mime = require('mime');
-} catch (e) {
-  console.error('Mime package not found, proceeding without MIME type support');
-}
-
-// Initialize the Google GenAI client with the API key
-const apiKey = getGoogleApiKey();
-
-// Debug API key (first 5 characters only for security)
-const maskedKey = apiKey ? `${apiKey.substring(0, 5)}...` : 'missing';
-console.log(`API Key status: ${apiKey ? 'present' : 'missing'}, preview: ${maskedKey}`);
-
-// Initialize the API client
-let genAI: GoogleGenAI | null = null;
-try {
-  genAI = new GoogleGenAI({
-    apiKey: apiKey,
-  });
-  console.log('GoogleGenAI client initialized successfully');
-} catch (error) {
-  console.error('Failed to initialize GoogleGenAI client:', error);
-}
+import { getGoogleApiKey as getPreferredGoogleKey } from './env';
 
 /**
  * Defines the structure of chat messages
@@ -48,154 +21,69 @@ const systemInstruction = `You are an AI doctor. Your job is to help users ident
 - Stay calm, professional, and empathetic
 - Respond like a real doctor in a natural, conversational tone`;
 
-// Simple, hard-coded responses for fallback when API fails
-const FALLBACK_RESPONSES = {
-  initial: [
-    "Thank you for sharing your symptoms. To help me better understand your condition, I need to ask a few questions:",
-    "1. How long have you been experiencing these symptoms?",
-    "2. Is the pain constant, or does it come and go?",
-    "3. Have you taken any medication for this?",
-    "4. Are you experiencing any other symptoms?",
-    "5. Do these symptoms affect your daily activities?"
-  ],
-  followUp: [
-    "Based on what you've described, there are a few potential causes to consider:",
-    
-    "1. Tension headache: This is the most common type of headache and can be caused by stress, poor posture, or dehydration. The pain typically feels like pressure or tightness around your head.",
-    
-    "2. Migraine: These cause moderate to severe throbbing pain, often on one side of the head, and can be accompanied by nausea, sensitivity to light and sound.",
-    
-    "If you've had this headache for 3 days continuously with no relief, I would recommend seeing a doctor, especially if this is an unusual pattern for you. Persistent headaches should be evaluated by a healthcare professional.",
-    
-    "In the meantime, you might try:",
-    "- Over-the-counter pain relievers like ibuprofen or acetaminophen",
-    "- Rest in a quiet, dark room",
-    "- Apply a cold or warm compress to your forehead or neck",
-    "- Stay hydrated",
-    
-    "Is there anything specific about the headache that concerns you most?"
-  ]
-};
-
 /**
  * Format messages for the Google GenAI API
  */
 function formatMessages(messages: ChatMessage[]) {
-  // Create a history of previous messages for context
   const formattedMessages = messages.map((msg) => ({
     role: msg.role,
     parts: [{ text: msg.content }],
   }));
 
-  // Ensure the first message includes the system instruction
-  if (formattedMessages.length > 0) {
-    if (formattedMessages[0].role === 'user') {
-      formattedMessages[0].parts[0].text = `${systemInstruction}\n\n${formattedMessages[0].parts[0].text}`;
-    }
+  if (formattedMessages.length > 0 && formattedMessages[0].role === 'user') {
+    formattedMessages[0].parts[0].text = `${systemInstruction}\n\n${formattedMessages[0].parts[0].text}`;
   }
   
   return formattedMessages;
 }
 
 /**
- * Generate a response from the AI doctor based on conversation history
- * Using the newer Google GenAI API
- * 
- * @param messages - The history of the conversation
- * @returns The AI doctor's response
+ * Generate a response from the AI doctor based on conversation history using Gemini
  */
 export async function getAIDoctorResponse(messages: ChatMessage[]): Promise<string> {
-  // Check if API client is available
-  if (!genAI || !apiKey) {
-    console.error('API client or key is missing', { genAI: !!genAI, apiKey: !!apiKey });
-    
-    // Use fallback responses instead
-    if (messages.length <= 1) {
-      return FALLBACK_RESPONSES.initial.join("\n\n");
-    }
-    return FALLBACK_RESPONSES.followUp.join("\n\n");
+  // Initialize at request time
+  const apiKey = getPreferredGoogleKey();
+  if (!apiKey) {
+    const err: any = new Error('Missing GOOGLE_AI_API_KEY or GEMINI_API_KEY. Add it to .env.local and restart the server.');
+    err.status = 400;
+    throw err;
   }
-  
+
+  const genAI = new GoogleGenAI({ apiKey });
+
   try {
-    console.log('Attempting to use Google GenAI API with messages:', messages.length);
-    console.log('API Key length:', apiKey.length, 'First 5 chars:', apiKey.substring(0,5));
-    console.log('Model to use:', 'gemini-1.5-pro');
+    const formattedMessages = formatMessages(messages);
 
-    // Configure tools for the model (Google Search retrieval)
-    const tools = [
-      {
-        googleSearchRetrieval: {
-          dynamicRetrievalConfig: {
-            dynamicThreshold: 0.3,
-            mode: DynamicRetrievalConfigMode.MODE_DYNAMIC
-          }
-        }
-      }
-    ];
+    // Default to Gemini Flash 2.5, allow override via env
+    const model = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
 
-    // Model configuration
     const config = {
-      temperature: 0.7,
-      tools,
+      temperature: 0.4,
       responseMimeType: 'text/plain',
-      systemInstruction: [
-        { text: systemInstruction }
-      ],
-    };
-    
-    // Use the newer Gemini 1.5 Pro model
-    const model = 'gemini-1.5-pro';
-    
-    try {
-      // Format messages for the API
-      const formattedMessages = formatMessages(messages);
-      console.log('Formatted messages for API:', formattedMessages.length);
-      console.log('First message role:', formattedMessages[0]?.role);
-      console.log('First message text length:', formattedMessages[0]?.parts[0]?.text?.length || 0);
+      systemInstruction: [{ text: systemInstruction }],
+    } as any;
 
-      // Generate content using the model
-      console.log('Calling generateContent...');
-      const response = await genAI.models.generateContent({
-        model,
-        config,
-        contents: formattedMessages,
-      });
-      console.log('API call completed. Response type:', typeof response);
-      console.log('Response properties:', Object.keys(response || {}).join(', '));
+    const response = await genAI.models.generateContent({
+      model,
+      config,
+      contents: formattedMessages,
+    });
 
-      console.log('Received response from Google GenAI');
-      
-      // Extract text from the response (fix for newer API structure)
-      if (response && response.text) {
-        console.log('Found response.text');
-        return response.text;
-      } else if (response && response.candidates && response.candidates.length > 0) {
-        console.log('Found candidates');
-        const firstCandidate = response.candidates[0];
-        if (firstCandidate.content && firstCandidate.content.parts && firstCandidate.content.parts.length > 0) {
-          console.log('Found content parts');
-          return firstCandidate.content.parts[0].text || '';
-        }
-      }
-      
-      console.log('Response structure:', JSON.stringify(response).substring(0, 200) + '...');
-      throw new Error('Invalid response format from API');
-    } catch (innerError) {
-      console.error('Error during API call:', innerError);
-      throw innerError;
+    if (response && (response as any).text) {
+      return (response as any).text as string;
     }
+
+    if ((response as any)?.candidates?.length > 0) {
+      const firstCandidate = (response as any).candidates[0];
+      const part = firstCandidate?.content?.parts?.[0];
+      if (part?.text) return part.text as string;
+    }
+
+    throw new Error('Invalid response format from Gemini API');
   } catch (error) {
-    console.error('Error calling GenAI API:', error);
-    if (error instanceof Error) {
-      console.error('Error message:', error.message);
-      console.error('Error stack:', error.stack);
-    }
-    
-    // Use fallback responses when API fails
-    console.log('Using fallback response due to API error');
-    if (messages.length <= 1) {
-      return FALLBACK_RESPONSES.initial.join("\n\n");
-    }
-    return FALLBACK_RESPONSES.followUp.join("\n\n");
+    // surface upstream
+    const err: any = error instanceof Error ? error : new Error(String(error));
+    if (err.status == null) err.status = 500;
+    throw err;
   }
 } 
