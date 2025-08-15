@@ -13,7 +13,6 @@ export default function MedicalChatbot() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat();
   const [isTyping, setIsTyping] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [textareaHeight, setTextareaHeight] = useState('auto');
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
   const messageContainerRef = useRef(null);
@@ -52,17 +51,7 @@ export default function MedicalChatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, isTyping]);
 
-  // Adjust textarea height
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      const scrollHeight = textareaRef.current.scrollHeight;
-      const maxHeight = window.innerWidth < 640 ? 100 : 200;
-      const newHeight = Math.min(scrollHeight, maxHeight);
-      textareaRef.current.style.height = `${newHeight}px`;
-      setTextareaHeight(`${newHeight}px`);
-    }
-  }, [input]);
+  // Removed auto-resize behavior to keep the prompt box at a fixed height
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -223,8 +212,7 @@ export default function MedicalChatbot() {
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder="Describe your symptoms in detail..."
-                  style={{ height: textareaHeight }}
-                  className="w-full pr-10 sm:pr-12 py-1.5 sm:py-2 md:py-3 px-2.5 sm:px-3 md:px-4 text-xs sm:text-sm md:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none min-h-[32px] sm:min-h-[40px] md:min-h-[48px]"
+                  className="w-full pr-12 sm:pr-14 px-3 sm:px-4 text-sm sm:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none h-11 sm:h-12 md:h-12 overflow-y-hidden"
                   rows={1}
                   disabled={isTyping}
                   aria-label="Message input"
@@ -232,11 +220,10 @@ export default function MedicalChatbot() {
                 <Button
                   type="submit"
                   disabled={isTyping || !input.trim()}
-                  className="absolute right-1.5 bottom-1.5 sm:right-2 sm:bottom-2 h-7 w-7 sm:h-8 sm:w-8 md:static md:h-10 md:w-auto md:p-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md sm:rounded-lg transition-colors flex items-center justify-center"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-11 sm:w-11 p-0 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-300 transition-colors flex items-center justify-center"
                   aria-label="Send message"
                 >
-                  <Send className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0 text-white" />
-                  <span className="hidden md:inline ml-1">Send</span>
+                  <Send className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </Button>
               </div>
             </form>
@@ -244,7 +231,7 @@ export default function MedicalChatbot() {
             {/* Recommendations */}
             <div className="mt-3 sm:mt-4">
               <h3 className="text-xs sm:text-sm font-medium text-gray-700 mb-2">Quick recommendations</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 sm:gap-3 overflow-y-auto max-h-28 sm:max-h-40 md:max-h-48 pr-1">
                 {[
                   { t: 'I have a headache' },
                   { t: 'I have stomach pain' },
