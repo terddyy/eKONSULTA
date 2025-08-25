@@ -73,6 +73,7 @@ export default function MedicalChatbot() {
     setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
 
     // Clear input
+    setInput(''); // Use setInput to clear the text area
     (document.activeElement)?.blur?.();
 
     try {
@@ -204,28 +205,28 @@ export default function MedicalChatbot() {
 
           {/* Input Area */}
           <div className="border-t border-gray-100 p-2 xs:p-3 sm:p-4 md:p-6 flex-shrink-0">
-            <form onSubmit={onSubmit} className="flex space-x-2 sm:space-x-3">
-              <div className="flex-1 relative">
+            <form onSubmit={onSubmit} className="flex space-x-2 sm:space-x-3 items-center">
+              <div className="flex-1">
                 <textarea
                   ref={textareaRef}
                   value={input}
                   onChange={handleInputChange}
                   onKeyDown={handleKeyDown}
                   placeholder="Describe your symptoms in detail..."
-                  className="w-full pr-12 sm:pr-14 px-3 sm:px-4 text-sm sm:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none h-11 sm:h-12 md:h-12 overflow-y-hidden"
+                  className="w-full px-3 sm:px-4 text-sm sm:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none h-11 sm:h-12 md:h-12 overflow-y-hidden leading-[2.75rem] sm:leading-[3rem]"
                   rows={1}
                   disabled={isTyping}
                   aria-label="Message input"
                 />
-                <Button
-                  type="submit"
-                  disabled={isTyping || !input.trim()}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 h-10 w-10 sm:h-11 sm:w-11 p-0 bg-emerald-600 hover:bg-emerald-700 text-white rounded-full shadow focus:outline-none focus:ring-2 focus:ring-emerald-300 transition-colors flex items-center justify-center"
-                  aria-label="Send message"
-                >
-                  <Send className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                </Button>
               </div>
+              <Button
+                type="submit"
+                disabled={isTyping || !input.trim()}
+                className="h-11 w-11 sm:h-12 sm:w-12 p-0 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md sm:rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-300 transition-colors flex items-center justify-center"
+                aria-label="Send message"
+              >
+                <Send className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </Button>
             </form>
 
             {/* Recommendations */}
