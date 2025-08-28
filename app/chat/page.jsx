@@ -10,7 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Stethoscope, Plus, Send, User, Bot, Home, Menu, X } from '@/components/ui/icons';
 
 export default function MedicalChatbot() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } = useChat();
   const [isTyping, setIsTyping] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const textareaRef = useRef(null);
