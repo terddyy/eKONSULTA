@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Card } from '@/components/ui/card';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Stethoscope, Plus, Send, User, Bot, Home, Menu, X } from '@/components/ui/icons';
+import { generateId } from '@/lib/useChat'; // Import generateId
 
 export default function MedicalChatbot() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } = useChat();
@@ -88,6 +89,15 @@ export default function MedicalChatbot() {
   const startNewConsultation = () => {
     setMessages([]);
     setInput(''); // Clear input on new consultation
+
+    // Add the initial greeting message back
+    const initialGreeting = {
+      id: generateId(),
+      role: 'assistant',
+      content: "Hello! I'm here to help with your health concerns. What symptoms are you experiencing?"
+    };
+    setMessages([initialGreeting]);
+
     if (mobileMenuOpen) setMobileMenuOpen(false);
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
