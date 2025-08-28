@@ -18,6 +18,28 @@ export default function MedicalChatbot() {
   const [viewportHeight, setViewportHeight] = useState(0);
   const [deviceSpecificHeight, setDeviceSpecificHeight] = useState('60vh');
 
+  // Helper function to render content with clickable links
+  const renderContentWithLinks = (text) => {
+    const urlRegex = /(\bhttps?:\/\/[^\s]+\b)/g;
+    const parts = text.split(urlRegex);
+    return parts.map((part, index) => {
+      if (part.match(urlRegex)) {
+        return (
+          <a 
+            key={index} 
+            href={part} 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="text-blue-500 hover:underline"
+          >
+            {part}
+          </a>
+        );
+      }
+      return part;
+    });
+  };
+
   // Detect device dimensions and set appropriate heights
   useEffect(() => {
     function handleResize() {
@@ -77,7 +99,7 @@ export default function MedicalChatbot() {
         <div className="max-w-4xl mx-auto px-3 sm:px-4 py-3 sm:py-4 flex items-center justify-between">
           <div className="flex items-center space-x-2 sm:space-x-3">
             <div className="bg-emerald-100 p-1.5 sm:p-2 rounded-full flex items-center justify-center">
-              <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+              <img src="/logo.png" alt="AI Medical Assistant Logo" className="h-9 w-9 sm:h-10 sm:w-10 object-contain" />
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-semibold text-gray-900">AI Medical Assistant</h1>
@@ -130,18 +152,18 @@ export default function MedicalChatbot() {
           >
             {messages.map((message) => (
               <div key={message.id} className={`flex items-start space-x-2 sm:space-x-3 ${message.role === 'user' ? 'flex-row-reverse space-x-reverse' : ''}`}>
-                <Avatar className={`h-7 w-7 sm:h-8 sm:w-8 md:h-10 md:w-10 flex-shrink-0 ${message.role === 'user' ? 'bg-blue-100 border-2 border-blue-200' : 'bg-emerald-100 border-2 border-emerald-200'}`}>
+                <Avatar className={`h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 flex-shrink-0 ${message.role === 'user' ? 'bg-blue-100' : 'bg-emerald-100'}`}>
                   <AvatarFallback className="flex items-center justify-center">
                     {message.role === 'user' ? (
                       <User className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
                     ) : (
-                      <Bot className="h-3 w-3 sm:h-4 sm:w-4 text-emerald-600" />
+                      <img src="/logo.png" alt="AI Medical Assistant Avatar" className="h-8 w-8 sm:h-10 sm:w-10 object-contain" />
                     )}
                   </AvatarFallback>
                 </Avatar>
                 <div className={`flex-1 max-w-[80%] xs:max-w-[85%] sm:max-w-[90%] ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
                   <div className={`inline-block p-2 xs:p-2.5 sm:p-3 md:p-4 rounded-lg sm:rounded-xl md:rounded-2xl ${message.role === 'user' ? 'bg-blue-600 text-white rounded-br-none' : 'bg-gray-50 text-gray-900 rounded-bl-none border border-gray-200'}`}>
-                    <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">{message.content}</div>
+                    <div className="text-xs sm:text-sm leading-relaxed whitespace-pre-wrap break-words">{renderContentWithLinks(message.content)}</div>
                   </div>
                   <div className={`text-[9px] xs:text-[10px] sm:text-xs text-gray-500 mt-0.5 sm:mt-1 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>{message.role === 'user' ? 'You' : 'AI Medical Assistant'}</div>
                 </div>

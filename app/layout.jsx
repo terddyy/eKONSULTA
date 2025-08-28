@@ -5,8 +5,8 @@ export const metadata = {
   description: 'A virtual medical assistant for AI-powered health consultations and symptom analysis',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.png',
-    apple: '/apple-icon.png'
+    icon: { url: '/logo.png', sizes: '32x32' },
+    apple: { url: '/logo.png', sizes: '180x180' },
   },
   openGraph: {
     title: 'E-Konsulta - AI Medical Assistant',

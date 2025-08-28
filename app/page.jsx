@@ -29,7 +29,7 @@ export default function HomePage() {
           <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center space-x-2 sm:space-x-3">
               <div className="bg-emerald-100 p-1.5 sm:p-2 rounded-full flex items-center justify-center">
-                <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                <img src="/logo.png" alt="E-Konsulta Logo" className="h-9 w-9 sm:h-10 sm:w-10 object-contain" />
               </div>
               <span className="text-lg sm:text-xl font-bold text-gray-900">E-Konsulta</span>
             </div>
@@ -97,8 +97,8 @@ export default function HomePage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-emerald-50 to-teal-50 py-10 sm:py-12 md:py-16 lg:py-20 flex-grow-0">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="bg-gradient-to-br from-emerald-50 to-teal-50 flex-grow min-h-[calc(100vh-3.5rem)] sm:min-h-[calc(100vh-4rem)] flex items-center">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 md:py-16 lg:py-20">
           <div className="grid lg:grid-cols-2 gap-8 sm:gap-10 lg:gap-12 items-center">
             <div className="px-0 sm:px-2 md:px-4">
               <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 leading-tight mb-4 sm:mb-6">
@@ -141,11 +141,11 @@ export default function HomePage() {
                 </div>
               </div>
             </div>
-            <div className="relative mt-6 sm:mt-8 lg:mt-0 px-2 sm:px-6 md:px-10 lg:px-4 xl:px-10">
-              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl md:shadow-2xl p-4 sm:p-5 md:p-6 max-w-sm xs:max-w-md mx-auto">
+            <div className="relative mt-6 sm:mt-8 lg:mt-0">
+              <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg sm:shadow-xl md:shadow-2xl p-4 sm:p-5 md:p-6 w-full">
                 <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
                   <div className="bg-emerald-100 p-1.5 sm:p-2 rounded-full flex items-center justify-center">
-                    <Stethoscope className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-600" />
+                    <img src="/logo.png" alt="AI Medical Assistant Logo" className="h-8 w-8 sm:h-9 sm:w-9 object-contain" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-gray-900 text-sm sm:text-base">AI Medical Assistant</h3>
@@ -336,7 +336,7 @@ export default function HomePage() {
             <div>
               <div className="flex items-center space-x-2 sm:space-x-3 mb-3 sm:mb-4">
                 <div className="bg-emerald-100 p-1.5 sm:p-2 rounded-full flex items-center justify-center">
-                  <Stethoscope className="h-5 w-5 sm:h-6 sm:w-6 text-emerald-600" />
+                  <img src="/logo.png" alt="E-Konsulta Logo" className="h-9 w-9 sm:h-10 sm:w-10 object-contain" />
                 </div>
                 <span className="text-lg sm:text-xl font-bold">E-Konsulta</span>
               </div>
