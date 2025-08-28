@@ -11,7 +11,6 @@ import { Stethoscope, Plus, Send, User, Bot, Home, Menu, X } from '@/components/
 
 export default function MedicalChatbot() {
   const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } = useChat();
-  const [isTyping, setIsTyping] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -49,76 +48,24 @@ export default function MedicalChatbot() {
   // Auto-scroll
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
+  }, [messages, isLoading]);
 
   // Removed auto-resize behavior to keep the prompt box at a fixed height
 
-  const onSubmit = async (e) => {
-    e.preventDefault();
-    if (!input.trim() || isTyping) return;
-
-    // Always stream
-    setIsTyping(true);
-
-    // Add user message immediately
-    const userMessage = {
-      id: Date.now().toString(36),
-      role: 'user',
-      content: input.trim(),
-    };
-    setMessages((prev) => [...prev, userMessage]);
-
-    // Create an empty assistant message to append to
-    const assistantId = `${Date.now().toString(36)}-ai`;
-    setMessages((prev) => [...prev, { id: assistantId, role: 'assistant', content: '' }]);
-
-    // Clear input
-    setInput(''); // Use setInput to clear the text area
-    (document.activeElement)?.blur?.();
-
-    try {
-      const url = `${window.location.origin}/api/consult/stream`;
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: [...messages, userMessage] }),
-        cache: 'no-store'
-      });
-      if (!res.ok || !res.body) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error || `Server error: ${res.status}`);
-      }
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let done = false;
-
-      while (!done) {
-        const { value, done: streamDone } = await reader.read();
-        done = streamDone;
-        if (value) {
-          const chunk = decoder.decode(value);
-          setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: m.content + chunk } : m));
-        }
-      }
-    } catch (err) {
-      const message = err?.message || 'Streaming failed';
-      setMessages((prev) => prev.map((m) => m.id === assistantId ? { ...m, content: message } : m));
-    } finally {
-      setIsTyping(false);
-    }
-  };
+  // Remove local onSubmit as useChat now handles submission and streaming
+  // const onSubmit = async (e) => { /* ... existing code ... */ };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Enter' && e.shiftKey) return;
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onSubmit(e);
+      handleSubmit(e); // Use handleSubmit from useChat
     }
   };
 
   const startNewConsultation = () => {
     setMessages([]);
+    setInput(''); // Clear input on new consultation
     if (mobileMenuOpen) setMobileMenuOpen(false);
     setTimeout(() => textareaRef.current?.focus(), 100);
   };
@@ -205,7 +152,7 @@ export default function MedicalChatbot() {
 
           {/* Input Area */}
           <div className="border-t border-gray-100 p-2 xs:p-3 sm:p-4 md:p-6 flex-shrink-0">
-            <form onSubmit={onSubmit} className="flex space-x-2 sm:space-x-3 items-center">
+            <form onSubmit={handleSubmit} className="flex space-x-2 sm:space-x-3 items-center">
               <div className="flex-1">
                 <textarea
                   ref={textareaRef}
@@ -215,13 +162,13 @@ export default function MedicalChatbot() {
                   placeholder="Describe your symptoms in detail..."
                   className="w-full px-3 sm:px-4 text-sm sm:text-base border border-gray-200 rounded-md sm:rounded-lg focus:outline-none focus:border-emerald-300 focus:ring focus:ring-emerald-200 focus:ring-opacity-50 resize-none h-11 sm:h-12 md:h-12 overflow-y-hidden leading-[2.75rem] sm:leading-[3rem]"
                   rows={1}
-                  disabled={isTyping}
+                  disabled={isLoading}
                   aria-label="Message input"
                 />
               </div>
               <Button
                 type="submit"
-                disabled={isTyping || !input.trim()}
+                disabled={isLoading || !input.trim()}
                 className="h-11 w-11 sm:h-12 sm:w-12 p-0 bg-emerald-600 hover:bg-emerald-700 text-white rounded-md sm:rounded-lg shadow focus:outline-none focus:ring-2 focus:ring-emerald-300 transition-colors flex items-center justify-center"
                 aria-label="Send message"
               >
@@ -262,7 +209,7 @@ export default function MedicalChatbot() {
                       textareaRef.current && (textareaRef.current.value = item.t);
                       const inputEvent = { target: { value: item.t } };
                       handleInputChange(inputEvent);
-                      onSubmit(fakeEvent);
+                      handleSubmit(fakeEvent); // Use handleSubmit from useChat
                     }}
                   >
                     {item.t}

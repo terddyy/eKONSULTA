@@ -5,7 +5,7 @@ export const metadata = {
   description: 'A virtual medical assistant for AI-powered health consultations and symptom analysis',
   manifest: '/manifest.json',
   icons: {
-    icon: '/favicon.ico',
+    icon: '/favicon.png',
     apple: '/apple-icon.png'
   },
   openGraph: {
