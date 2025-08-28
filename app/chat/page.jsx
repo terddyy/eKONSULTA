@@ -11,7 +11,7 @@ import { Stethoscope, Plus, Send, User, Bot, Home, Menu, X } from '@/components/
 import { generateId } from '@/lib/useChat'; // Import generateId
 
 export default function MedicalChatbot() {
-  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput } = useChat();
+  const { messages, input, handleInputChange, handleSubmit, isLoading, setMessages, setInput, addInitialGreeting } = useChat();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const textareaRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -89,14 +89,7 @@ export default function MedicalChatbot() {
   const startNewConsultation = () => {
     setMessages([]);
     setInput(''); // Clear input on new consultation
-
-    // Add the initial greeting message back
-    const initialGreeting = {
-      id: generateId(),
-      role: 'assistant',
-      content: "Hello! I'm here to help with your health concerns. What symptoms are you experiencing?"
-    };
-    setMessages([initialGreeting]);
+    addInitialGreeting(); // Add the initial greeting message back
 
     if (mobileMenuOpen) setMobileMenuOpen(false);
     setTimeout(() => textareaRef.current?.focus(), 100);
